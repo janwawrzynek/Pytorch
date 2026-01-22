@@ -1,0 +1,64 @@
+import torch
+#our data
+N = 10
+D_in = 1
+D_out = 1
+# Each data point is a 1D tensor of size 1, 1 input feature and 1 output value
+#Create our random imput data
+X = torch.randn(N,D_in)
+
+#Create our true target labels  
+
+true_W = torch.tensor([[2.0]])
+true_b = torch.tensor([1.0])
+y_true = X @ true_W + true_b  + torch.randn(N,D_out) * 0.1  # add some noise
+
+W = torch.randn(D_in, D_out, requires_grad = True)
+b = torch.randn(1, requires_grad = True)
+print(f"Initial weight W \n: {W}\n")
+print(f"Initial bias b \n: {b}\n")
+y_hat = X @ W + b
+#y_hat = model(X_train)
+print(f' Prediction y_hat (first 3 rows):\n {y_hat[:3]}\n')
+print(f' True labels y_true (first 3 rows):\n {y_true[:3]}\n')
+
+error =  y_hat - y_true
+squared_error = error ** 2
+loss  =  squared_error.mean()
+print(f"Loss (our single scorecard number): {loss} ")
+# Compute Gradients
+
+loss.backward()
+print(f" Gradient for W (dl/dW):\n {W.grad}\n")
+print(f" Gradient for b (dl/db):\n {b.grad}\n")
+#  Measure error with loss and know direction with .grad
+#.grad_zero_() Resets gradients at each iteration
+# torch.no_grad() Don't Track Parameter Updates
+
+#hyperarameters
+learning_rate, epochs = 0.1, 100
+
+#reinitialse weights and bias
+W, b = torch.randn(D_in, D_out, requires_grad = True), torch.randn(1, requires_grad = True)
+
+
+# Training Loop
+for epoch in range(epochs):
+    # forward pass and loss
+    y_hat =  X @ W + b
+    loss = torch.mean((y_hat - y_true) ** 2)
+    # backward pass
+    loss.backward()
+    # update parameters using gradient descent
+    with torch.no_grad():
+        W -= learning_rate * W.grad
+        b -= learning_rate * b.grad
+
+    # zero gradients
+    W.grad.zero_(), b.grad.zero_()
+    if epoch % 10 == 0:
+        print(f"Epoch {epoch}: loss = {loss.item():.4f}, W = {W.item():.3f}, b = {b.item():.3f}")
+
+print(f"\nFinal Parameters: W = {W.item():.3f}, b = {b.item():.3f}")
+print(f"True Parameters: W = 2.000, b = 1.000")
+
